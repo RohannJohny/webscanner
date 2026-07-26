@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>portscan // console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e0d;
+    --panel: #0f1513;
+    --panel-2: #121a17;
+    --border: #1e2b26;
+    --text: #d7f2df;
+    --text-dim: #6d8078;
+    --accent: #39ff88;
+    --accent-dim: #1f8f52;
+    --amber: #ffb648;
+    --red: #ff5c5c;
+    --font-display: 'Space Mono', monospace;
+    --font-body: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(57,255,136,0.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(57,255,136,0.04), transparent 40%);
+  }
+
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  header {
+    margin-bottom: 32px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--accent-dim);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 32px;
+    margin: 6px 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 .cursor {
+    display: inline-block;
+    width: 14px;
+    height: 26px;
+    background: var(--accent);
+    margin-left: 4px;
+    vertical-align: -4px;
+    animation: blink 1.1s step-start infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .sub {
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 22px;
+    margin-bottom: 20px;
+  }
+
+  .panel-label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .grid-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 14px;
+  }
+
+  .grid-form .row-2 {
+    grid-column: span 2;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus {
+    border-color: var(--accent-dim);
+  }
+
+  .field-prompt {
+    position: relative;
+  }
+
+  .field-prompt::before {
+    content: "$";
+    position: absolute;
+    left: 12px;
+    top: 34px;
+    color: var(--accent-dim);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .field-prompt input { padding-left: 26px; }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  button {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    padding: 11px 22px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #scanBtn {
+    background: var(--accent);
+    color: #06120a;
+    font-weight: 700;
+  }
+  #scanBtn:hover:not(:disabled) { opacity: 0.88; }
+
+  #stopBtn {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+  #stopBtn:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+
+  .status-line {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-dim);
+  }
+  .status-dot.busy { background: var(--amber); animation: pulse 1s ease-in-out infinite; }
+  .status-dot.ok { background: var(--accent); }
+  .status-dot.err { background: var(--red); }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  .grid-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+
+  #portGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10px, 1fr));
+    gap: 3px;
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    background: var(--border);
+    border-radius: 1px;
+    transition: background 0.2s;
+  }
+  .cell.scanned { background: #1a2420; }
+  .cell.open { background: var(--accent); box-shadow: 0 0 6px rgba(57,255,136,0.6); }
+
+  .legend {
+    display: flex; gap: 18px; margin-top: 14px; font-size: 11px; color: var(--text-dim);
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 9px; height: 9px; border-radius: 1px; }
+
+  #log {
+    font-size: 13px;
+    line-height: 1.7;
+    max-height: 340px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  #log .line-open { color: var(--accent); }
+  #log .line-info { color: var(--text-dim); }
+  #log .line-err { color: var(--red); }
+
+  #log::-webkit-scrollbar { width: 8px; }
+  #log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  footer {
+    color: var(--text-dim);
+    font-size: 11px;
+    text-align: center;
+    margin-top: 32px;
+    line-height: 1.7;
+  }
+  footer strong { color: var(--amber); }
+
+  @media (max-width: 640px) {
+    .grid-form { grid-template-columns: 1fr 1fr; }
+    .grid-form .row-2 { grid-column: span 2; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+    <div>
+      <div class="eyebrow">tcp connect scanner</div>
+      <h1>portscan<span class="cursor"></span></h1>
+      <p class="sub">Enter a target you're authorized to test. The scan runs on the server and streams results here as each port resolves.</p>
+    </div>
+    <form method="POST" action="/logout" style="margin-top:24px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-display);font-size:11px;padding:8px 14px;border-radius:4px;cursor:pointer;">Log out</button>
+    </form>
+  </header>
+
+  <div class="panel">
+    <div class="panel-label">Target</div>
+    <div class="grid-form">
+      <div class="field-prompt row-2">
+        <label for="target">host or ip</label>
+        <input type="text" id="target" placeholder="127.0.0.1" value="127.0.0.1">
+      </div>
+      <div>
+        <label for="startPort">start port</label>
+        <input type="number" id="startPort" value="1" min="0" max="65535">
+      </div>
+      <div>
+        <label for="endPort">end port</label>
+        <input type="number" id="endPort" value="1024" min="0" max="65535">
+      </div>
+      <div>
+        <label for="timeout">timeout (s)</label>
+        <input type="number" id="timeout" value="0.5" step="0.1" min="0.05" max="5">
+      </div>
+      <div>
+        <label for="threads">threads</label>
+        <input type="number" id="threads" value="100" min="1" max="200">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <div style="font-size:11px;color:var(--text-dim);padding-top:10px;">max 3000 ports/scan</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="scanBtn">Start Scan</button>
+      <button id="stopBtn" disabled>Stop</button>
+    </div>
+    <div class="status-line"><span class="status-dot" id="statusDot"></span><span id="statusText">idle</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="grid-panel-header">
+      <div class="panel-label" style="margin-bottom:0;">Port Map</div>
+      <div id="gridSummary" style="font-size:11px;color:var(--text-dim);"></div>
+    </div>
+    <div id="portGrid"></div>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--border);"></span>pending</span>
+      <span><span class="swatch" style="background:#1a2420;"></span>closed</span>
+      <span><span class="swatch" style="background:var(--accent);"></span>open</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">Log</div>
+    <div id="log"></div>
+  </div>
+
+  <footer>
+    Only scan hosts and networks you own or have <strong>explicit written permission</strong> to test.<br>
+    Unauthorized scanning may violate the law and the acceptable-use policy of most hosting providers.
+  </footer>
+</div>
+
+<script>
+const scanBtn = document.getElementById('scanBtn');
+const stopBtn = document.getElementById('stopBtn');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const portGrid = document.getElementById('portGrid');
+const gridSummary = document.getElementById('gridSummary');
+const log = document.getElementById('log');
+
+let evtSource = null;
+let cellByPort = {};
+
+function setStatus(kind, text) {
+  statusDot.className = 'status-dot' + (kind ? ' ' + kind : '');
+  statusText.textContent = text;
+}
+
+function logLine(text, cls) {
+  const div = document.createElement('div');
+  if (cls) div.className = cls;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function buildGrid(start, end) {
+  portGrid.innerHTML = '';
+  cellByPort = {};
+  const total = end - start + 1;
+  for (let p = start; p <= end; p++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.title = 'port ' + p;
+    portGrid.appendChild(cell);
+    cellByPort[p] = cell;
+  }
+  gridSummary.textContent = total + ' ports';
+}
+
+scanBtn.addEventListener('click', () => {
+  const target = document.getElementById('target').value.trim();
+  const start = document.getElementById('startPort').value;
+  const end = document.getElementById('endPort').value;
+  const timeout = document.getElementById('timeout').value;
+  const threads = document.getElementById('threads').value;
+
+  if (!target) { setStatus('err', 'target is required'); return; }
+
+  log.innerHTML = '';
+  scanBtn.disabled = true;
+  stopBtn.disabled = false;
+  setStatus('busy', 'connecting...');
+
+  const url = `/api/scan/stream?target=${encodeURIComponent(target)}&start=${start}&end=${end}&timeout=${timeout}&threads=${threads}`;
+  evtSource = new EventSource(url);
+
+  let openCount = 0;
+
+  evtSource.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.type === 'start') {
+      buildGrid(data.start, data.end);
+      logLine(`> scanning ${data.target} (${data.ip})  ports ${data.start}-${data.end}`, 'line-info');
+    }
+
+    else if (data.type === 'result') {
+      const cell = cellByPort[data.port];
+      if (cell) cell.className = 'cell scanned' + (data.open ? ' open' : '');
+      if (data.open) {
+        openCount++;
+        logLine(`  port ${data.port}  OPEN   (${data.service})`, 'line-open');
+      }
+      gridSummary.textContent = `${data.scanned}/${data.total} scanned · ${openCount} open`;
+    }
+
+    else if (data.type === 'done') {
+      if (data.stopped) {
+        logLine(`\n> stopped by user · ${data.open_count} open port(s) found`, 'line-err');
+        setStatus('', 'stopped');
+      } else {
+        logLine(`\n> done in ${data.elapsed}s · ${data.open_count} open port(s) of ${data.total} scanned`, 'line-info');
+        setStatus('ok', 'complete');
+      }
+      finishScan();
+    }
+
+    else if (data.type === 'error') {
+      logLine(`! ${data.message}`, 'line-err');
+      setStatus('err', 'error');
+      finishScan();
+    }
+  };
+
+  evtSource.onerror = () => {
+    if (evtSource.readyState === EventSource.CLOSED) return;
+    logLine('! connection lost', 'line-err');
+    setStatus('err', 'connection lost');
+    finishScan();
+  };
+});
+
+stopBtn.addEventListener('click', () => {
+  if (evtSource) {
+    evtSource.close();
+    logLine('\n> stopped by user (client closed connection)', 'line-err');
+    setStatus('', 'stopped');
+  }
+  finishScan();
+});
+
+function finishScan() {
+  if (evtSource) { evtSource.close(); evtSource = null; }
+  scanBtn.disabled = false;
+  stopBtn.disabled = true;
+}
+</script>
+</body>
+</html>
