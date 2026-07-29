@@ -80,7 +80,7 @@ MAX_TRACKED_IPS = 5000        # cap dict size so a flood of distinct IPs can't l
 # ---- Safety limits (tune these before deploying publicly) ----
 MAX_PORTS_PER_SCAN = 3000       # cap the range size to keep any one scan fast/bounded
 MAX_THREADS = 200
-MIN_TIMEOUT = 0.05
+MIN_TIMEOUT = 3.0
 MAX_TIMEOUT = 5.0
 
 COMMON_PORTS = {
